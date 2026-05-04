@@ -1,11 +1,9 @@
 import os
 import random
-import threading
 import time
 from models.order import Order
 from multiprocessing_system.process_manager import run_parallel_processes
 from pipeline.stages import pipeline
-from producer_consumer.producer_consumer import consumer, producer
 from threading_lock.inventory import inventory
 
 NUM_ORDERS    = 15
