@@ -5,6 +5,7 @@ import time
 from models.order import Order
 from pipeline.stages import pipeline
 from producer_consumer.producer_consumer import consumer, producer
+from threading_lock.inventory import inventory
 
 NUM_ORDERS    = 15
 NUM_CONSUMERS = 5
@@ -17,6 +18,7 @@ def load_items():
         return [line.strip() for line in file if line.strip()]
 
 def run_sequential(items):
+    inventory.reset()   # restore stock to full before each run
     for i in range(NUM_ORDERS):
         order = Order(
             id=f"ORD-{i+1:03d}",
@@ -31,6 +33,7 @@ def run_sequential(items):
             print(f"[{order.id}] FAILED – {error}\n")
 
 def run_parallel():
+    inventory.reset()   # restore stock to full before each run
     worker_times = {}
     consumers = []
 
