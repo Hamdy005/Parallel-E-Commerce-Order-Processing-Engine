@@ -19,6 +19,7 @@ Key concept:
     the concurrency level to something sensible.
 """
 
+import os
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
@@ -64,10 +65,11 @@ def _charge_customer(order: Order) -> Order:
         raise RuntimeError(f"Payment gateway rejected order {order.id}")
 
     order.status = "paid"
-    print(
-        f"   [$$] [PaymentPool] [{order.id}] Charged  "
-        f"${order.price:,.2f}  in {latency:.3f}s"
-    )
+    if os.environ.get("SHOW_LOCK_TRACKING", "1") == "1":
+        print(
+            f"   [$$] [PaymentPool] [{order.id}] Charged  "
+            f"${order.price:,.2f}  in {latency:.3f}s"
+        )
     return order
 
 
@@ -127,10 +129,11 @@ class PaymentPool:
         """
         paid_orders: List[Order] = []
 
-        print(
-            f"\n   [**] [PaymentPool] Processing {len(orders)} orders "
-            f"with {self._max_workers} workers..."
-        )
+        if os.environ.get("SHOW_LOCK_TRACKING", "1") == "1":
+            print(
+                f"\n   [**] [PaymentPool] Processing {len(orders)} orders "
+                f"with {self._max_workers} workers..."
+            )
 
         with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
             # Submit all at once — the pool queues extras automatically
@@ -146,12 +149,14 @@ class PaymentPool:
                     paid_order = future.result()
                     paid_orders.append(paid_order)
                 except RuntimeError as exc:
-                    print(f"   [!!] [PaymentPool] [{original_order.id}] FAILED - {exc}")
+                    if os.environ.get("SHOW_LOCK_TRACKING", "1") == "1":
+                        print(f"   [!!] [PaymentPool] [{original_order.id}] FAILED - {exc}")
 
-        print(
-            f"   [OK] [PaymentPool] Batch complete: "
-            f"{len(paid_orders)}/{len(orders)} succeeded\n"
-        )
+        if os.environ.get("SHOW_LOCK_TRACKING", "1") == "1":
+            print(
+                f"   [OK] [PaymentPool] Batch complete: "
+                f"{len(paid_orders)}/{len(orders)} succeeded\n"
+            )
         return paid_orders
 
 

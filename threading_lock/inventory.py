@@ -14,6 +14,7 @@ Solution:
     read AND write the stock level at a time, so every deduction is safe.
 """
 
+import os
 import threading
 
 
@@ -51,10 +52,11 @@ class InventoryManager:
 
         with self._lock:                          # 🔐 acquire lock
             self._stock[item] = self._stock.get(item, 0) + quantity
-            print(
-                f"   [+] [Inventory] Added {quantity}x '{item}'  "
-                f"-> stock now {self._stock[item]}"
-            )
+            if os.environ.get("SHOW_LOCK_TRACKING", "1") == "1":
+                print(
+                    f"   [+] [Inventory] Added {quantity}x '{item}'  "
+                    f"-> stock now {self._stock[item]}"
+                )
                                                   # 🔓 lock released automatically
 
     def deduct_stock(self, order) -> None:
@@ -81,10 +83,11 @@ class InventoryManager:
                 )
 
             self._stock[item] = in_stock - needed
-            print(
-                f"   [L] [Inventory] [{order.id}] Deducted {needed}x '{item}'  "
-                f"-> stock now {self._stock[item]}"
-            )
+            if os.environ.get("SHOW_LOCK_TRACKING", "1") == "1":
+                print(
+                    f"   [L] [Inventory] [{order.id}] Deducted {needed}x '{item}'  "
+                    f"-> stock now {self._stock[item]}"
+                )
                                                   # 🔓 lock released automatically
 
     def get_stock(self, item: str) -> int:

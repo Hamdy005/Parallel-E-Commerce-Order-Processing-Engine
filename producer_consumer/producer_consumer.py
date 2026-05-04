@@ -9,6 +9,7 @@ if PARENT_DIR not in sys.path:
     sys.path.append(PARENT_DIR)
 
 from models.order import Order
+import os
 import random
 import time
 from multiprocessing import Queue 
@@ -63,10 +64,12 @@ def consumer(worker_id, worker_times=None, queue_obj=None):
         # Processing Current Order
         try:
             completed = pipeline(order)
-            print(f"[{completed.id}] COMPLETE - status: {completed.status}\n")
+            if os.environ.get("SHOW_TRACKING", "1") == "1":
+                print(f"[{completed.id}] COMPLETE - status: {completed.status}\n")
         
         except Exception as error:
-            print(f"[{order.id}] FAILED - {error}\n")
+            if os.environ.get("SHOW_TRACKING", "1") == "1":
+                print(f"[{order.id}] FAILED - {error}\n")
      
     if worker_times is not None:
         worker_times[worker_id] = time.time() - start_time
