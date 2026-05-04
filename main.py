@@ -3,8 +3,10 @@ import random
 import threading
 import time
 from models.order import Order
+from multiprocessing_system.process_manager import run_parallel_processes
 from pipeline.stages import pipeline
-from producer_consumer.producer_consumer import consumer, producer
+from threading_lock.inventory import inventory
+
 
 NUM_ORDERS    = 15
 NUM_CONSUMERS = 5
@@ -17,6 +19,7 @@ def load_items():
         return [line.strip() for line in file if line.strip()]
 
 def run_sequential(items):
+    inventory.reset()   # restore stock to full before each run
     for i in range(NUM_ORDERS):
         order = Order(
             id=f"ORD-{i+1:03d}",
@@ -31,40 +34,8 @@ def run_sequential(items):
             print(f"[{order.id}] FAILED – {error}\n")
 
 def run_parallel():
-    worker_times = {}
-    consumers = []
-
-    start_time = time.time()
-
-    # Start consumer threads first
-    for i in range(1, NUM_CONSUMERS + 1):
-        t = threading.Thread(target=consumer, args=(i, worker_times))
-        t.start()
-        consumers.append(t)
-
-    # Start producer thread
-    p = threading.Thread(target=producer, args=(NUM_ORDERS, NUM_CONSUMERS))
-    p.start()
-
-    # Wait for everything to finish
-    p.join()
-    for thread in consumers:
-        thread.join()
-
-    total_time = time.time() - start_time
-    throughput = NUM_ORDERS / total_time
-
-    print("=" * 55)
-    print("  Parallel Execution Time Report:")
-    for worker_id, duration in sorted(worker_times.items()):
-        print(f"   ✅ Worker {worker_id} completed in {duration:.4f}s")
-
-    print("-" * 55)
-    print(f"  Total Time: {total_time:.4f}s")
-    print(f"  Throughput: {throughput:.2f} orders/second")
-    print("=" * 55)
-
-    return total_time, throughput
+    inventory.reset()   # restore stock to full before each run
+    return run_parallel_processes(NUM_ORDERS, NUM_CONSUMERS)
 
 if __name__ == "__main__":
     print("=" * 55)
@@ -77,7 +48,7 @@ if __name__ == "__main__":
     while True:
         print("Options:")
         print("  1) Run Sequential")
-        print("  2) Run Parallel")
+        print("  2) Run Parallel (Multiprocessing)")
         print("  3) Exit")
         choice = input("Select an option (1-3): ").strip()
 

@@ -27,7 +27,9 @@ with open(ITEMS_FILE, 'r') as file:
 
 
 # Producer Function
-def producer(number_of_orders = 20, number_of_consumers = 1):
+def producer(number_of_orders = 20, number_of_consumers = 1, queue_obj=None):
+    if queue_obj is None:
+        queue_obj = queue
     
     for i in range(number_of_orders):
         order = Order(
@@ -36,32 +38,35 @@ def producer(number_of_orders = 20, number_of_consumers = 1):
             quantity=random.randint(1, 3),
             price=random.randint(50, 50000),
         )
-        queue.put(order)
+        queue_obj.put(order)
         time.sleep(0.1)
 
     for i in range(number_of_consumers):
-        queue.put(None)
+        queue_obj.put(None)
 
 
 # Consumer Function
-def consumer(worker_id, worker_times=None):
+def consumer(worker_id, worker_times=None, queue_obj=None):
+    if queue_obj is None:
+        queue_obj = queue
+        
     if worker_times is not None:
-        print(f"   ⏳ Worker {worker_id} started...")
+        print(f"   [>>] Worker {worker_id} started...")
         start_time = time.time()
 
     while True:
         # Getting Current Order
-        order = queue.get()
+        order = queue_obj.get()
         if order is None:
-            break 
+            break
         
         # Processing Current Order
         try:
             completed = pipeline(order)
-            print(f"[{completed.id}] COMPLETE – status: {completed.status}\n")
+            print(f"[{completed.id}] COMPLETE - status: {completed.status}\n")
         
         except Exception as error:
-            print(f"[{order.id}] FAILED – {error}\n")
+            print(f"[{order.id}] FAILED - {error}\n")
      
     if worker_times is not None:
         worker_times[worker_id] = time.time() - start_time
