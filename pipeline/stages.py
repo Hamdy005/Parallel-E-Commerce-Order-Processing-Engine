@@ -50,4 +50,3 @@ def pipeline(order):
     order = update_inventory(order)
     order = ship_order(order)
     return order
-
