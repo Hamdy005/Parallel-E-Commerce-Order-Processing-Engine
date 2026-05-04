@@ -154,4 +154,10 @@ class PaymentPool:
         )
         return paid_orders
 
+
+
+# ---------------------------------------------------------------------------
+# Module-level singleton used by pipeline/stages.py
+# ---------------------------------------------------------------------------
+
 payment_pool = PaymentPool(max_workers=MAX_WORKERS)
