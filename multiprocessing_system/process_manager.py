@@ -17,9 +17,10 @@ def run_parallel_processes(num_orders, num_consumers, num_processes=None):
     print(f"[Config] Using {resolved_cores} core(s) "
           f"({'auto-detected' if num_processes is None else 'user-specified'})")
 
- 
+    
+    # Manager Allows Threading + Multiprocessing (Due to shared queue)
     manager = multiprocessing.Manager()
-    worker_times = manager.dict()
+    worker_times = manager.dict()  
     shared_queue = manager.Queue(maxsize=100)
     consumers = []
     start_time = time.time()
